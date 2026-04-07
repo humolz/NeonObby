@@ -7,11 +7,11 @@
 ;     3. cmake --install build --prefix install/
 ;     4. "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\NeonObby.iss
 ;
-;  Output:  dist\NeonObbySetup-1.0.2.exe
+;  Output:  dist\NeonObbySetup-1.0.3.exe
 ; ----------------------------------------------------------------------------
 
 #define MyAppName        "NeonObby"
-#define MyAppVersion     "1.0.2"
+#define MyAppVersion     "1.0.3"
 #define MyAppPublisher   "Vance Andrei Maglinte"
 #define MyAppExeName     "NeonObby.exe"
 

@@ -23,7 +23,7 @@ public:
     float targetFov = 60.0f;
     float fovSpeed = 8.0f;  // lerp speed
 
-    void processInput(float dx, float dy, float scroll) {
+    void processInput(float dx, float dy, float /*scroll*/) {
         const auto& s = Settings::get();
         float sens = s.mouseSens;
         float yawDelta   = dx * sens;
@@ -32,8 +32,9 @@ public:
         yaw += yawDelta;
         pitch -= pitchDelta;
         pitch = std::clamp(pitch, minPitch, maxPitch);
-        distance -= scroll * 1.0f;
-        distance = std::clamp(distance, minDist, maxDist);
+        // Scroll-wheel distance zoom was removed in v1.0.3 — users now control
+        // perceived zoom with the FOV slider in Settings, and scrolling no
+        // longer fights it.
     }
 
     void update(const glm::vec3& targetPos, float dt) {
