@@ -1,0 +1,25 @@
+build/
+cmake-build-*/
+install/
+dist/
+.vs/
+.vscode/
+.claude/
+*.exe
+*.obj
+*.o
+*.a
+*.lib
+CMakeCache.txt
+CMakeFiles/
+
+# Runtime ImGui layout state
+imgui.ini
+
+# Logs
+*.log
+
+# OneDrive litter
+*.tmp
+~$*
+desktop.ini
