@@ -605,11 +605,31 @@ private:
             ? mc.model->clips[mc.currentClip].name : "";
         mc.looping = (name == "Walk");
 
-        // Slow down animation when standing still (Walk clip)
+        // The Crouch and Prone clips were authored facing the opposite direction
+        // from Walk/Idle/Jump, so without a yaw flip the character visibly turns
+        // around when ducking. Rotate them 180° so the head stays pointed the
+        // same way the camera is looking.
+        if (pc.state == PlayerState::Crouching ||
+            pc.state == PlayerState::Prone ||
+            pc.state == PlayerState::Sliding) {
+            mc.yawOffset = 180.0f;
+        } else {
+            mc.yawOffset = 0.0f;
+        }
+
+        // Freeze the walk cycle entirely when the player isn't actually moving.
+        // Previously we clamped speedScale to a minimum of 0.3, which made the
+        // legs shuffle in place at idle — that's what "walking animation plays
+        // constantly" looked like. Now: zero horizontal speed → zero advance,
+        // so the model holds a neutral pose until the player inputs movement.
         float speedScale = 1.0f;
         if (pc.state == PlayerState::Idle || pc.state == PlayerState::Running) {
             float speed = glm::length(glm::vec2(rb.velocity.x, rb.velocity.z));
-            speedScale = std::max(0.3f, std::min(speed / 6.0f, 2.0f));
+            if (speed < 0.15f) {
+                speedScale = 0.0f;
+            } else {
+                speedScale = std::min(speed / 6.0f, 2.0f);
+            }
         }
 
         mc.currentTime += dt * mc.playbackSpeed * speedScale;

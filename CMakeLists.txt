@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(NeonObby VERSION 1.0.0 LANGUAGES C CXX RC)
+project(NeonObby VERSION 1.0.1 LANGUAGES C CXX RC)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -62,16 +62,17 @@ if(NOT NEONOBBY_SERVER_ONLY)
     # Auto-updater needs WinHTTP for HTTPS calls to the GitHub Releases API.
     if(WIN32)
         target_link_libraries(NeonObby PRIVATE winhttp)
+        # -mwindows switches subsystem CONSOLE → WINDOWS so no black box pops up.
+        # Applied to *all* build types — players should never see a terminal
+        # flash by, even during development, and Task Manager won't list a
+        # conhost.exe child process any more.
+        target_link_options(NeonObby PRIVATE -mwindows)
     endif()
 
-    # Release-only: hide console window, optimize, strip symbols.
+    # Release-only: optimize, strip symbols.
     if(CMAKE_BUILD_TYPE STREQUAL "Release")
         target_compile_options(NeonObby PRIVATE -O2)
         target_compile_definitions(NeonObby PRIVATE NDEBUG)
-        if(WIN32)
-            # -mwindows switches subsystem CONSOLE → WINDOWS so no black box pops up.
-            target_link_options(NeonObby PRIVATE -mwindows)
-        endif()
         if(CMAKE_STRIP)
             add_custom_command(TARGET NeonObby POST_BUILD
                 COMMAND ${CMAKE_STRIP} $<TARGET_FILE:NeonObby>

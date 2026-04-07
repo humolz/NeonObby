@@ -148,7 +148,7 @@
         },
         {
             "type": "JumpPad",
-            "position": [0, 1.5, 19],
+            "position": [0, 0.85, 19],
             "scale": [2, 0.3, 2],
             "strength": 14.0
         },
