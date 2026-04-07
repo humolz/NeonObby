@@ -3,6 +3,8 @@
 #include <imgui.h>
 #include <cstdio>
 
+#include "core/Settings.h"
+
 struct HUDData {
     float timerElapsed = 0.0f;
     bool timerRunning = false;
@@ -11,11 +13,13 @@ struct HUDData {
     int checkpointsTotal = 0;
     float playerSpeed = 0.0f;
     bool levelComplete = false;
+    int fps = 0;
 };
 
 class HUD {
 public:
     void render(const HUDData& data) {
+        const auto& settings = Settings::get();
         // Timer — top center
         {
             ImGuiIO& io = ImGui::GetIO();
@@ -63,13 +67,16 @@ public:
                 ImGui::Text("Checkpoint: %d/%d", data.checkpointsCurrent, data.checkpointsTotal);
             }
             ImGui::Text("Speed: %.1f", data.playerSpeed);
+            if (settings.showFps) {
+                ImGui::Text("FPS: %d", data.fps);
+            }
             ImGui::PopStyleColor();
 
             ImGui::End();
         }
 
-        // Controls hint — bottom center
-        {
+        // Controls hint — bottom center (toggleable in settings)
+        if (settings.showControlsHint) {
             ImGuiIO& io = ImGui::GetIO();
             ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y - 30.0f),
                                      0, ImVec2(0.5f, 1.0f));
@@ -80,7 +87,11 @@ public:
                 ImGuiWindowFlags_AlwaysAutoResize);
 
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.45f, 0.6f, 0.6f));
-            ImGui::Text("ESC Pause  |  R Restart  |  C Crouch  |  Z Prone");
+            ImGui::Text("%s Pause  |  %s Restart  |  %s Crouch  |  %s Prone",
+                Settings::keyName(settings.keys.pause).c_str(),
+                Settings::keyName(settings.keys.restart).c_str(),
+                Settings::keyName(settings.keys.crouch).c_str(),
+                Settings::keyName(settings.keys.prone).c_str());
             ImGui::PopStyleColor();
 
             ImGui::End();

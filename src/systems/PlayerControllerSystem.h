@@ -3,6 +3,7 @@
 #include "ecs/System.h"
 #include "ecs/World.h"
 #include "core/Input.h"
+#include "core/Settings.h"
 #include "player/ThirdPersonCamera.h"
 #include "components/TransformComponent.h"
 #include "components/RigidBodyComponent.h"
@@ -49,19 +50,21 @@ private:
             pc.coyoteTimer += dt;
         }
 
+        const auto& keys = Settings::get().keys;
+
         // Jump buffer
-        if (Input::keyDown(GLFW_KEY_SPACE) && !pc.jumpPressed) {
+        if (Input::keyDown(keys.jump) && !pc.jumpPressed) {
             pc.jumpBufferTimer = pc.jumpBufferTime;
             pc.jumpPressed = true;
         }
-        if (!Input::keyDown(GLFW_KEY_SPACE)) {
+        if (!Input::keyDown(keys.jump)) {
             pc.jumpPressed = false;
         }
         pc.jumpBufferTimer -= dt;
 
         // Crouch / Prone input
-        pc.crouchHeld = Input::keyDown(GLFW_KEY_LEFT_CONTROL) || Input::keyDown(GLFW_KEY_C);
-        pc.proneHeld = Input::keyDown(GLFW_KEY_Z);
+        pc.crouchHeld = Input::keyDown(keys.crouch);
+        pc.proneHeld = Input::keyDown(keys.prone);
 
         // State transitions for crouch/prone
         updateStance(tc, rb, col, pc, dt, moveInput);

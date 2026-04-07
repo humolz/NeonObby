@@ -2,11 +2,13 @@
 
 #include "scene/Scene.h"
 #include "ui/MainMenuUI.h"
+#include "ui/SettingsUI.h"
 #include "ui/UpdateNotification.h"
 #include "save/SaveManager.h"
 #include "renderer/Shader.h"
 #include "renderer/ScreenQuad.h"
 #include "core/Paths.h"
+#include "core/Settings.h"
 #include <glad/glad.h>
 #include <string>
 #include <vector>
@@ -34,6 +36,16 @@ public:
     }
 
     void renderUI() override {
+        // Settings overlay takes priority — when it's up, the main menu is
+        // hidden behind the dark backdrop and we don't dispatch its actions.
+        if (m_showSettings) {
+            if (SettingsUI::render()) {
+                m_showSettings = false;
+                Settings::save();
+            }
+            return;
+        }
+
         MenuAction action = m_menuUI.render();
 
         // Auto-update banner — silent unless a newer version was published.
@@ -46,6 +58,9 @@ public:
             if (m_onLaunch) m_onLaunch(idx);
             break;
         }
+        case MenuAction::Settings:
+            m_showSettings = true;
+            break;
         case MenuAction::Quit:
             m_pendingAction = SceneAction::Quit;
             break;
@@ -60,6 +75,7 @@ private:
     ScreenQuad m_skyQuad;
     MainMenuUI m_menuUI;
     LaunchCallback m_onLaunch;
+    bool m_showSettings = false;
 
     void rebuildLevelList() {
         std::string assetsDir = Paths::getAssetPath("");

@@ -2,6 +2,7 @@
 
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include "core/Settings.h"
 
 class Input {
 public:
@@ -23,19 +24,23 @@ public:
         // nothing needed — deltas are set in callbacks
     }
 
+    static GLFWwindow* window() { return s_window; }
     static bool keyDown(int key) { return glfwGetKey(s_window, key) == GLFW_PRESS; }
     static bool mouseDown(int button) { return glfwGetMouseButton(s_window, button) == GLFW_PRESS; }
 
     static glm::vec2 mouseDelta() { return s_mouseDelta; }
     static float scrollDelta() { return s_scrollDelta; }
 
-    // Movement vector from WASD (normalized if nonzero)
+    // Movement vector from the user's bound keys (normalized if nonzero).
+    // Reads live from Settings so remapping in the pause menu takes effect
+    // without restarting the level.
     static glm::vec2 moveInput() {
+        const auto& k = Settings::get().keys;
         glm::vec2 dir(0.0f);
-        if (keyDown(GLFW_KEY_W)) dir.y += 1.0f;
-        if (keyDown(GLFW_KEY_S)) dir.y -= 1.0f;
-        if (keyDown(GLFW_KEY_A)) dir.x -= 1.0f;
-        if (keyDown(GLFW_KEY_D)) dir.x += 1.0f;
+        if (keyDown(k.moveForward)) dir.y += 1.0f;
+        if (keyDown(k.moveBack))    dir.y -= 1.0f;
+        if (keyDown(k.moveLeft))    dir.x -= 1.0f;
+        if (keyDown(k.moveRight))   dir.x += 1.0f;
         if (glm::length(dir) > 0.0f) dir = glm::normalize(dir);
         return dir;
     }

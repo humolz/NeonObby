@@ -6,6 +6,7 @@ enum class PauseAction {
     None,
     Resume,
     Restart,
+    Settings,
     MainMenu
 };
 
@@ -27,8 +28,8 @@ public:
         dl->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(5, 5, 15, 180));
         ImGui::End();
 
-        // Pause window
-        float winW = 300.0f, winH = 280.0f;
+        // Pause window — sized to fit 4 buttons (Resume / Restart / Settings / Main Menu)
+        float winW = 300.0f, winH = 340.0f;
         ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f),
                                  0, ImVec2(0.5f, 0.5f));
         ImGui::SetNextWindowSize(ImVec2(winW, winH));
@@ -62,6 +63,12 @@ public:
         ImGui::SetCursorPosX(16.0f);
         if (ImGui::Button("Restart Level", ImVec2(btnW, btnH))) {
             action = PauseAction::Restart;
+        }
+
+        ImGui::Spacing();
+        ImGui::SetCursorPosX(16.0f);
+        if (ImGui::Button("Settings", ImVec2(btnW, btnH))) {
+            action = PauseAction::Settings;
         }
 
         ImGui::Spacing();

@@ -5,13 +5,14 @@
 #include <cmath>
 #include <algorithm>
 
+#include "core/Settings.h"
+
 class ThirdPersonCamera {
 public:
     float distance = 8.0f;
     float heightOffset = 2.0f;
     float yaw = 0.0f;
     float pitch = 20.0f;
-    float sensitivity = 0.15f;
     float smoothSpeed = 10.0f;
     float minPitch = -30.0f;
     float maxPitch = 60.0f;
@@ -23,8 +24,13 @@ public:
     float fovSpeed = 8.0f;  // lerp speed
 
     void processInput(float dx, float dy, float scroll) {
-        yaw += dx * sensitivity;
-        pitch -= dy * sensitivity;
+        const auto& s = Settings::get();
+        float sens = s.mouseSens;
+        float yawDelta   = dx * sens;
+        float pitchDelta = dy * sens * (s.invertY ? -1.0f : 1.0f);
+
+        yaw += yawDelta;
+        pitch -= pitchDelta;
         pitch = std::clamp(pitch, minPitch, maxPitch);
         distance -= scroll * 1.0f;
         distance = std::clamp(distance, minDist, maxDist);
@@ -38,6 +44,11 @@ public:
         // Smooth follow
         float t = 1.0f - std::exp(-smoothSpeed * dt);
         m_currentPos = glm::mix(m_currentPos, desired, t);
+
+        // Keep baseFov synced with the user's FOV slider so edits in the
+        // pause menu apply instantly. GameScene resets targetFov to baseFov
+        // when no speed-boost effect is active.
+        baseFov = Settings::get().fov;
 
         // Smooth FOV transition (for speed boost effect)
         float fovT = 1.0f - std::exp(-fovSpeed * dt);

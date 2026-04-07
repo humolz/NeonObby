@@ -1,6 +1,7 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
 #include "audio/AudioEngine.h"
+#include "core/Settings.h"
 #include <cstring>
 #include <cstdlib>
 #include <iostream>
@@ -13,6 +14,12 @@ void audioCallback(void* pDevice, void* pOutput, const void* /*pInput*/, unsigne
 
     std::memset(output, 0, frameCount * 2 * sizeof(float)); // stereo
 
+    // Read master volume from user settings each callback so the slider in the
+    // pause menu takes effect immediately. The audio thread is the only reader
+    // and Settings::get() returns a reference to a stable global, so this is
+    // safe even though there's no explicit lock around the float read.
+    float masterVol = Settings::get().masterVolume;
+
     std::lock_guard<std::mutex> lock(engine->m_voiceMutex);
 
     for (auto& voice : engine->m_voices) {
@@ -23,7 +30,7 @@ void audioCallback(void* pDevice, void* pOutput, const void* /*pInput*/, unsigne
                 voice.active = false;
                 break;
             }
-            float sample = voice.data[voice.cursor] * voice.volume * engine->masterVolume;
+            float sample = voice.data[voice.cursor] * voice.volume * masterVol;
             output[i * 2 + 0] += sample; // left
             output[i * 2 + 1] += sample; // right
             voice.cursor++;

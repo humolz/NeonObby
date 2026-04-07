@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(NeonObby VERSION 1.0.1 LANGUAGES C CXX RC)
+project(NeonObby VERSION 1.0.2 LANGUAGES C CXX RC)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -36,6 +36,7 @@ if(NOT NEONOBBY_SERVER_ONLY)
         src/main.cpp
         src/core/Window.cpp
         src/core/Paths.cpp
+        src/core/Settings.cpp
         src/renderer/Shader.cpp
         src/renderer/Mesh.cpp
         src/renderer/MeshFactory.cpp

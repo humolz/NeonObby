@@ -36,6 +36,8 @@
 #include "ui/DeathOverlay.h"
 #include "core/Input.h"
 #include "core/Paths.h"
+#include "core/Settings.h"
+#include "ui/SettingsUI.h"
 
 #include <string>
 #include <functional>
@@ -63,10 +65,11 @@ public:
     void setOnMainMenu(MenuCallback cb) { m_onMainMenu = std::move(cb); }
     void setOnNextLevel(NextLevelCallback cb) { m_onNextLevel = std::move(cb); }
     void setOnComplete(CompleteCallback cb) { m_onComplete = std::move(cb); }
+    void setFps(int fps) { m_currentFps = fps; }
 
     bool isPaused() const { return m_paused; }
     bool isLevelComplete() const { return m_levelComplete; }
-    bool wantsCursor() const { return m_paused || m_levelComplete; }
+    bool wantsCursor() const { return m_paused || m_levelComplete || m_showSettings; }
     int levelIndex() const { return m_levelIndex; }
     bool debugEnabled() const { return m_debugRenderer.enabled; }
 
@@ -82,21 +85,30 @@ public:
     }
 
     void update(float dt) override {
-        // Pause toggle with Escape
-        if (Input::keyDown(GLFW_KEY_ESCAPE) && !m_escWasDown) {
-            if (m_levelComplete) {
+        const auto& keys = Settings::get().keys;
+
+        // Pause toggle with the bound pause key (default Escape). While the
+        // settings overlay is visible we route the key to "close settings"
+        // instead so the user can Esc out of the overlay without unpausing.
+        bool escNow = Input::keyDown(keys.pause);
+        if (escNow && !m_escWasDown) {
+            if (m_showSettings) {
+                m_showSettings = false;
+                Settings::save();
+            } else if (m_levelComplete) {
                 // Esc during level complete does nothing
             } else {
                 m_paused = !m_paused;
             }
         }
-        m_escWasDown = Input::keyDown(GLFW_KEY_ESCAPE);
+        m_escWasDown = escNow;
 
-        // Debug toggle with F3
-        if (Input::keyDown(GLFW_KEY_F3) && !m_f3WasDown) {
+        // Debug toggle
+        bool f3Now = Input::keyDown(keys.debug);
+        if (f3Now && !m_f3WasDown) {
             m_debugRenderer.enabled = !m_debugRenderer.enabled;
         }
-        m_f3WasDown = Input::keyDown(GLFW_KEY_F3);
+        m_f3WasDown = f3Now;
 
         if (m_paused || m_levelComplete) return;
 
@@ -242,11 +254,12 @@ public:
         // Update particles
         m_particles.update(dt);
 
-        // Restart level with R
-        if (Input::keyDown(GLFW_KEY_R) && !m_rWasDown) {
+        // Restart level with the bound restart key
+        bool rNow = Input::keyDown(keys.restart);
+        if (rNow && !m_rWasDown) {
             restartLevel();
         }
-        m_rWasDown = Input::keyDown(GLFW_KEY_R);
+        m_rWasDown = rNow;
     }
 
     void render(float /*alpha*/) override {
@@ -389,6 +402,7 @@ public:
         hudData.levelComplete = m_levelComplete;
         hudData.checkpointsCurrent = m_checkpointSystem.lastCheckpoint() + 1;
         hudData.checkpointsTotal = m_totalCheckpoints;
+        hudData.fps = m_currentFps;
 
         if (m_world.alive(m_player)) {
             auto& pc = m_world.get<PlayerComponent>(m_player);
@@ -450,6 +464,16 @@ public:
             return;
         }
 
+        // Settings overlay sits on top of the pause menu — if it's visible
+        // we render it instead of the pause buttons.
+        if (m_showSettings) {
+            if (SettingsUI::render()) {
+                m_showSettings = false;
+                Settings::save();
+            }
+            return;
+        }
+
         // Pause menu overlay
         if (m_paused) {
             PauseAction act = m_pauseMenu.render();
@@ -460,6 +484,9 @@ public:
             case PauseAction::Restart:
                 m_paused = false;
                 restartLevel();
+                break;
+            case PauseAction::Settings:
+                m_showSettings = true;
                 break;
             case PauseAction::MainMenu:
                 if (m_onMainMenu) m_onMainMenu();
@@ -501,6 +528,7 @@ private:
     float m_aspect = 16.0f / 9.0f;
     bool m_levelComplete = false;
     bool m_paused = false;
+    bool m_showSettings = false;
     bool m_escWasDown = false;
     bool m_rWasDown = false;
     bool m_f3WasDown = false;
@@ -514,6 +542,7 @@ private:
     int m_levelIndex = 0;
     int m_totalLevels = 3;
     int m_totalCheckpoints = 0;
+    int m_currentFps = 0;
     MenuCallback m_onMainMenu;
     NextLevelCallback m_onNextLevel;
     CompleteCallback m_onComplete;

@@ -9,6 +9,7 @@ enum class MenuAction {
     None,
     Play,
     SelectLevel,
+    Settings,
     Quit
 };
 
@@ -35,7 +36,7 @@ public:
         }
 
         // Main menu window
-        float winW = 400.0f, winH = 380.0f;
+        float winW = 400.0f, winH = 440.0f;
         ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f),
                                  0, ImVec2(0.5f, 0.5f));
         ImGui::SetNextWindowSize(ImVec2(winW, winH));
@@ -97,6 +98,12 @@ public:
         ImGui::SetCursorPosX(btnX);
         if (ImGui::Button("Level Select", ImVec2(btnW, btnH))) {
             m_showLevelSelect = true;
+        }
+
+        ImGui::Spacing();
+        ImGui::SetCursorPosX(btnX);
+        if (ImGui::Button("Settings", ImVec2(btnW, btnH))) {
+            action = MenuAction::Settings;
         }
 
         ImGui::Spacing();

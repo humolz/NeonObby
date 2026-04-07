@@ -2,6 +2,7 @@
 #include "core/Timer.h"
 #include "core/Input.h"
 #include "core/Paths.h"
+#include "core/Settings.h"
 #include "renderer/Shader.h"
 #include "renderer/MeshCache.h"
 #include "renderer/PostProcess.h"
@@ -11,6 +12,7 @@
 #include "scene/GameScene.h"
 #include "scene/MenuScene.h"
 #include "ui/UIManager.h"
+#include "ui/SettingsUI.h"
 #include "save/SaveManager.h"
 #include "audio/AudioEngine.h"
 #include "net/Updater.h"
@@ -23,8 +25,25 @@
 enum class PendingTransition { None, GoToMenu, LaunchLevel };
 
 int main() {
-    Window window(1280, 720, "NeonObby - Phase 7");
+    // Load user preferences first so window size / display mode / vsync are
+    // applied from the very first frame. If settings.json is missing, this
+    // leaves the defaults in place.
+    Settings::load();
+
+    const auto& st = Settings::get();
+    Window window(st.windowedWidth, st.windowedHeight, "NeonObby");
+    window.applyDisplayMode(st.displayMode);
+    window.setVSync(st.vsync);
     Input::init(window.handle());
+
+    // Wire the settings UI's "apply display" hook so display-mode and vsync
+    // changes from the in-game settings overlay take effect on the next
+    // frame instead of waiting for a relaunch.
+    SettingsUI::onApplyDisplay = [&]() {
+        const auto& s = Settings::get();
+        window.applyDisplayMode(s.displayMode);
+        window.setVSync(s.vsync);
+    };
 
     std::string assetsDir = Paths::getAssetPath("");
     Shader neonShader(assetsDir + "/shaders/neon.vert", assetsDir + "/shaders/neon.frag");
@@ -179,7 +198,7 @@ int main() {
                 setCursorCaptured(true);
             }
 
-            if (Input::keyDown(GLFW_KEY_TAB)) {
+            if (Input::keyDown(Settings::get().keys.freeCursor)) {
                 if (!tabWasDown) {
                     setCursorCaptured(!cursorCaptured);
                 }
@@ -205,13 +224,19 @@ int main() {
             activeGameScene->renderDebug(window.aspectRatio());
         }
 
+        // Push the rolling FPS counter into GameScene so the HUD can show it
+        // when the user has the FPS toggle enabled in settings.
+        int fps = timer.fps();
+        if (activeGameScene) {
+            activeGameScene->setFps(fps);
+        }
+
         ui.beginFrame();
         scenes.renderUI();
         ui.endFrame();
 
         window.swapBuffers();
 
-        int fps = timer.fps();
         if (fps > 0) {
             std::string title = "NeonObby - Phase 7 | FPS: " + std::to_string(fps);
             glfwSetWindowTitle(window.handle(), title.c_str());
@@ -219,6 +244,7 @@ int main() {
     }
 
     Updater::shutdown();
+    Settings::save();
     audio.shutdown();
     ui.shutdown();
     return 0;
