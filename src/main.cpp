@@ -20,6 +20,8 @@
 
 #include <string>
 #include <vector>
+#include <thread>
+#include <chrono>
 
 // Deferred transition to avoid destroying scenes mid-frame
 enum class PendingTransition { None, GoToMenu, LaunchLevel };
@@ -159,6 +161,10 @@ int main() {
     bool tabWasDown = false;
 
     while (!window.shouldClose()) {
+        // Record frame start so the FPS limiter can sleep at the end of the
+        // frame if the user has set a cap below the natural rate.
+        double frameStartTime = glfwGetTime();
+
         // Process deferred transitions at the start of frame (safe point)
         if (pendingTransition != PendingTransition::None) {
             PendingTransition action = pendingTransition;
@@ -236,6 +242,24 @@ int main() {
         ui.endFrame();
 
         window.swapBuffers();
+
+        // Frame rate cap. fpsCap == 0 means uncapped; otherwise sleep until
+        // the target frame time elapses. We sleep for the bulk of the wait
+        // and busy-spin the last ~1ms for accuracy — std::this_thread::sleep_for
+        // on Windows can overshoot by a millisecond or two, which would
+        // visibly miss a 240/360 Hz target otherwise.
+        int fpsCap = Settings::get().fpsCap;
+        if (fpsCap > 0) {
+            double targetFrameTime = 1.0 / static_cast<double>(fpsCap);
+            double remaining = targetFrameTime - (glfwGetTime() - frameStartTime);
+            if (remaining > 0.002) {
+                std::this_thread::sleep_for(
+                    std::chrono::duration<double>(remaining - 0.001));
+            }
+            while (glfwGetTime() - frameStartTime < targetFrameTime) {
+                // busy-wait the final sliver
+            }
+        }
 
         if (fps > 0) {
             std::string title = "NeonObby - Phase 7 | FPS: " + std::to_string(fps);

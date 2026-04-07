@@ -59,6 +59,7 @@ void load() {
         if (j.contains("vsync"))          g_data.vsync        = j["vsync"].get<bool>();
         if (j.contains("windowedWidth"))  g_data.windowedWidth  = j["windowedWidth"].get<int>();
         if (j.contains("windowedHeight")) g_data.windowedHeight = j["windowedHeight"].get<int>();
+        if (j.contains("fpsCap"))         g_data.fpsCap         = j["fpsCap"].get<int>();
         if (j.contains("showFps"))        g_data.showFps      = j["showFps"].get<bool>();
         if (j.contains("showControlsHint")) g_data.showControlsHint = j["showControlsHint"].get<bool>();
         if (j.contains("bloomIntensity")) g_data.bloomIntensity = j["bloomIntensity"].get<float>();
@@ -96,6 +97,7 @@ void save() {
     j["vsync"]          = g_data.vsync;
     j["windowedWidth"]  = g_data.windowedWidth;
     j["windowedHeight"] = g_data.windowedHeight;
+    j["fpsCap"]         = g_data.fpsCap;
     j["showFps"]        = g_data.showFps;
     j["showControlsHint"] = g_data.showControlsHint;
     j["bloomIntensity"] = g_data.bloomIntensity;

@@ -86,6 +86,16 @@ public:
             if (ImGui::Checkbox("V-Sync", &s.vsync)) {
                 if (onApplyDisplay) onApplyDisplay();
             }
+
+            // FPS cap — radio buttons for the standard refresh rates plus
+            // an uncapped option. 0 = uncapped in the data layer.
+            ImGui::Text("FPS Cap");
+            ImGui::RadioButton("60",  &s.fpsCap, 60);  ImGui::SameLine();
+            ImGui::RadioButton("120", &s.fpsCap, 120); ImGui::SameLine();
+            ImGui::RadioButton("144", &s.fpsCap, 144); ImGui::SameLine();
+            ImGui::RadioButton("240", &s.fpsCap, 240); ImGui::SameLine();
+            ImGui::RadioButton("360", &s.fpsCap, 360); ImGui::SameLine();
+            ImGui::RadioButton("Uncapped", &s.fpsCap, 0);
         }
 
         // ---------------- Audio ----------------

@@ -59,6 +59,9 @@ struct Data {
     bool  vsync            = true;
     int   windowedWidth    = 1280;
     int   windowedHeight   = 720;
+    // 0 = uncapped, otherwise the main loop sleeps to hit this frame rate.
+    // Stacks with vsync — if vsync is on, the effective cap is min(refresh, fpsCap).
+    int   fpsCap           = 0;
 
     // --- HUD ---
     bool showFps        = false;
